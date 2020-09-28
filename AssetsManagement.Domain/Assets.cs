@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AssetsManagement.Models
-{
+namespace AssetsManagement.Domain
+{ 
     public class Assets
     {
         public int Id { get; set; }
