@@ -1,4 +1,5 @@
 ﻿using AssetsManagement.Domain;
+using AssetsManagement.Repo.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,46 @@ namespace AssetsManagement.Repo
 
             return await query.ToArrayAsync();
         }
+        public async Task<User[]> GetAllUsers()
+        {
+            IQueryable<User> query = _context.Users;
+
+            query = query.AsNoTracking().OrderBy(x => x.Id);
+
+            return await query.ToArrayAsync();
+        }
+
+        public async Task<User> GetUserById(int id)
+        {
+            IQueryable<User> query = _context.Users;
+
+            query = query.AsNoTracking()
+                         .Where(x => x.Id == id)
+                         .OrderBy(x => x.Id);
+
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<User[]> GetUsersByEmail(string email)
+        {
+            IQueryable<User> query = _context.Users;
+
+            query = query.AsNoTracking()
+                         .Where(x => x.Email.Contains(email))
+                         .OrderBy(x => x.Id);
+
+            return await query.ToArrayAsync();
+        }
+        public async Task<User> GetUserByEmailAndPassword(string email, string password)
+        {
+            IQueryable<User> query = _context.Users;
+
+            query = query.AsNoTracking()
+                         .Where(x => x.Email == email && x.Password == password)
+                         .OrderBy(x => x.Id);
+
+            return await query.FirstOrDefaultAsync();
+        }
 
         public async Task<bool> SaveChangeAsync()
         {
@@ -76,5 +117,7 @@ namespace AssetsManagement.Repo
         {
              _context.Update(entity);
         }
+
+
     }
 }

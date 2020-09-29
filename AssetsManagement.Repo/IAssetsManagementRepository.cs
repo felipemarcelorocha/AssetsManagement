@@ -16,6 +16,9 @@ namespace AssetsManagement.Repo
         Task<Assets> GetAssetsById(int id);
         Task<Assets[]> GetAssetsByName(string name);
         Task<Assets> GetAssetsByAssetsNumber(int assetsNumber);
-
+        Task<User[]> GetAllUsers();
+        Task<User> GetUserByEmailAndPassword(string email, string password);
+        Task<User> GetUserById(int id);
+        Task<User[]> GetUsersByEmail(string email);
     }
 }

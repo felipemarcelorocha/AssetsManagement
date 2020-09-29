@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AssetsManagement.Repo
+namespace AssetsManagement.Repo.Context
 {
     public class AssetsContext : DbContext
     {

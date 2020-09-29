@@ -2,32 +2,54 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AssetsManagement.Domain;
-using AssetsManagement.Repo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using AssetsManagement.Repo;
+using AssetsManagement.Domain;
+using AssetsManagement.Repo.Services;
+
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace AssetsManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AssetsController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IAssetsManagementRepository _repo;
-        public AssetsController(IAssetsManagementRepository repo)
+        public UserController(IAssetsManagementRepository repo)
         {
             _repo = repo;
         }
-        // GET: api/Assets
+
+        [HttpPost]
+        [Route("login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<dynamic>> Authenticate([FromBody]User model)
+        {
+            var user = await _repo.GetUserByEmailAndPassword(model.Email, model.Password);
+
+            if (user == null)
+                return NotFound(new { message = "Usuário ou senha incorretos" });
+
+            var token = TokenService.GenerateToken(user);
+            return new
+            {
+                user = user,
+                token = token
+            };
+        }
+
+        // GET: api/User
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Get()
         {
             try
             {
-                var assets = await _repo.GetAllAssets();
+                var users = await _repo.GetAllUsers();
 
-                return Ok(assets);
+                return Ok(users);
             }
             catch (Exception ex)
             {
@@ -36,16 +58,16 @@ namespace AssetsManagement.Controllers
             }
         }
 
-        // GET api/Assets/5
+        // GET api/User/5
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> Get(int id)
         {
             try
             {
-                var assets = await _repo.GetAssetsById(id);
+                var user = await _repo.GetUserById(id);
 
-                return Ok(assets);
+                return Ok(user);
             }
             catch (Exception ex)
             {
@@ -54,17 +76,12 @@ namespace AssetsManagement.Controllers
             }
         }
 
-        // POST api/Assets
+        // POST api/User
         [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> Post(Assets model)
+        public async Task<IActionResult> Post(User model)
         {
             try
             {
-                int assetNumber = await getAssetNumber();
-
-                model.AssetNumber = assetNumber;
-
                 _repo.Add(model);
 
                 if (await _repo.SaveChangeAsync())
@@ -81,22 +98,21 @@ namespace AssetsManagement.Controllers
             return BadRequest("Não salvou");
         }
 
-        // PUT api/Assets/5
+        // PUT api/User/5
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> Put(int id, Assets model)
+        public async Task<IActionResult> Put(int id, User model)
         {
             try
             {
-                var assets = await _repo.GetAssetsById(id);
+                var user = await _repo.GetUserById(id);
 
-                if (assets != null)
+                if (user != null)
                 {
-                    model.Id = assets.Id;
-                    model.AssetNumber = assets.AssetNumber;
+                    model.Id = user.Id;
                     _repo.Update(model);
                     if (await _repo.SaveChangeAsync())
-                        return Ok(string.Concat("Patrimônio atualizado, nome: {0}", assets.Name));
+                        return Ok(string.Concat("Usuário atualizado, nome: {0}", user.Name));
                 }
             }
             catch (Exception ex)
@@ -106,22 +122,22 @@ namespace AssetsManagement.Controllers
             }
 
             return BadRequest(string.Concat("Não atualizado, Id informado: {0}", id));
-        }    
+        }
 
-        // DELETE api/Assets/5
+        // DELETE api/User/5
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                var assets = await _repo.GetAssetsById(id);
+                var user = await _repo.GetUserById(id);
 
-                if (assets != null)
+                if (user != null)
                 {
-                    _repo.Delete(assets);
+                    _repo.Delete(user);
                     if (await _repo.SaveChangeAsync())
-                        return Ok(string.Concat("Patrimônio deletado, nome: {0}", assets.Name));
+                        return Ok(string.Concat("Usuário deletado, Email: {0}", user.Email));
                 }
             }
             catch (Exception ex)
@@ -131,19 +147,6 @@ namespace AssetsManagement.Controllers
             }
 
             return BadRequest(string.Concat("Não Deletado, Id informado: {0}", id));
-        }
-
-        private async Task<int> getAssetNumber()
-        {
-            Random randomNumber = new Random();
-            int assetNumber = randomNumber.Next();
-
-            while (await _repo.GetAssetsByAssetsNumber(assetNumber) != null)
-            {
-                assetNumber = randomNumber.Next();
-            }
-
-            return assetNumber;
         }
     }
 }
