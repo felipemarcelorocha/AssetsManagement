@@ -34,7 +34,9 @@ PUT api/user/{id} - Alterar os dados de um usuário
 
 DELETE api/user/{id} - Excluir um usuário
 -	**Autenticação:**
+
 URL: api/user/login
+
 Body:
 {
   "name": "admin",
